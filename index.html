@@ -1,5 +1,23 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<html><head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1420729233490327');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1420729233490327&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>2 in 1 Eyebrow &amp; Facial Hair Remover</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial;color:#24171c}.top{background:#21161b;color:#fff;text-align:center;padding:10px;font-size:12px;font-weight:800}.offer{background:#e83e78;color:#fff;text-align:center;padding:9px;font-size:12px;font-weight:900}
@@ -137,17 +155,58 @@ phoneInput.addEventListener('input', function(){
   this.setCustomValidity('');
 });
 
-orderForm.onsubmit=e=>{
+const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw0Li_1cfA95pLgycH5Pk0oXkvQflU18l8IpeMUEWmbygkIUdnMmRiKoVIZmDpc7RaJ/exec';
+
+orderForm.onsubmit=async e=>{
   e.preventDefault();
   phoneInput.setCustomValidity('');
-  tn.textContent=name.value;
-  tp.textContent=phone.value;
-  tc.textContent=city.value;
-  ta.textContent=address.value;
-  tl.textContent=near.value;
-  orderNo.innerHTML='<b>Order #BR'+Math.floor(100000+Math.random()*900000)+'</b>';
+
+  const customerName = name.value.trim();
+  const customerPhone = phone.value.trim();
+  const customerCity = city.value.trim();
+  const customerAddress = address.value.trim();
+  const customerNear = near.value.trim();
+  const orderNumber = 'BR' + Math.floor(100000+Math.random()*900000);
+
+  tn.textContent=customerName;
+  tp.textContent=customerPhone;
+  tc.textContent=customerCity;
+  ta.textContent=customerAddress;
+  tl.textContent=customerNear;
+  orderNo.innerHTML='<b>Order #'+orderNumber+'</b>';
   orderModal.classList.remove('open');
   processing.classList.add('show');
+
+  // Send the order to Google Sheets through the deployed Google Apps Script.
+  // no-cors is used because Google Apps Script Web Apps return an opaque response to browser requests.
+  const orderData = {
+    orderNo: orderNumber,
+    name: customerName,
+    phone: customerPhone,
+    address: customerAddress,
+    city: customerCity,
+    near: customerNear,
+    product: '2 in 1 Eyebrow & Facial Hair Remover',
+    quantity: 1,
+    price: 1499,
+    delivery: 200,
+    total: 1699,
+    status: 'New Order',
+    source: 'Website'
+  };
+
+  try {
+    await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(orderData),
+      keepalive: true
+    });
+  } catch (error) {
+    console.error('Google Sheet submission failed:', error);
+  }
+
   let n=3;
   count.textContent=n;
   let t=setInterval(()=>{
@@ -157,6 +216,17 @@ orderForm.onsubmit=e=>{
       clearInterval(t);
       processing.classList.remove('show');
       thanks.classList.add('show');
+
+      // Meta Pixel: track a completed Cash on Delivery purchase once
+      if (typeof fbq === 'function' && !window.purchaseTracked) {
+        window.purchaseTracked = true;
+        fbq('track', 'Purchase', {
+          value: 1699.00,
+          currency: 'PKR',
+          content_name: '2 in 1 Eyebrow & Facial Hair Remover',
+          content_type: 'product'
+        });
+      }
     }
   },1000);
 };
