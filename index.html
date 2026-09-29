@@ -224,19 +224,6 @@ orderForm.onsubmit=e=>{
     keepalive: true
   }).catch(error => console.error('Google Sheet submission failed:', error));
 
-  // Meta Pixel Purchase: fire immediately when the customer confirms the order.
-  if (typeof fbq === 'function' && !window.purchaseTracked) {
-    window.purchaseTracked = true;
-    fbq('track', 'Purchase', {
-      value: 1699.00,
-      currency: 'PKR',
-      content_name: '2 in 1 Eyebrow & Facial Hair Remover',
-      content_type: 'product',
-      content_ids: ['2in1-eyebrow-facial-hair-remover'],
-      num_items: 1
-    });
-  }
-
   let n=3;
   count.textContent=n;
   let t=setInterval(()=>{
@@ -247,6 +234,19 @@ orderForm.onsubmit=e=>{
       processing.classList.remove('show');
       thanks.classList.add('show');
 
+      // Meta Pixel Purchase fires only after the Thank You screen is shown.
+      // This keeps Purchase separate from PageView and prevents duplicate firing.
+      if (typeof fbq === 'function' && !window.purchaseTracked) {
+        window.purchaseTracked = true;
+        fbq('track', 'Purchase', {
+          value: 1699.00,
+          currency: 'PKR',
+          content_name: '2 in 1 Eyebrow & Facial Hair Remover',
+          content_type: 'product',
+          content_ids: ['2in1-eyebrow-facial-hair-remover'],
+          num_items: 1
+        });
+      }
 
     }
   },1000);
