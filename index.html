@@ -10,11 +10,11 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1420729233490327');
+fbq('init', '2272764813565494');
 fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1420729233490327&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=2272764813565494&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
@@ -224,19 +224,6 @@ orderForm.onsubmit=e=>{
     keepalive: true
   }).catch(error => console.error('Google Sheet submission failed:', error));
 
-  // Meta Pixel Purchase: fire immediately when the customer confirms the order.
-  if (typeof fbq === 'function' && !window.purchaseTracked) {
-    window.purchaseTracked = true;
-    fbq('track', 'Purchase', {
-      value: 1699.00,
-      currency: 'PKR',
-      content_name: '2 in 1 Eyebrow & Facial Hair Remover',
-      content_type: 'product',
-      content_ids: ['2in1-eyebrow-facial-hair-remover'],
-      num_items: 1
-    });
-  }
-
   let n=3;
   count.textContent=n;
   let t=setInterval(()=>{
@@ -247,6 +234,18 @@ orderForm.onsubmit=e=>{
       processing.classList.remove('show');
       thanks.classList.add('show');
 
+      // Meta Pixel Purchase fires only after the Thank You page is displayed.
+      if (typeof fbq === 'function' && !window.purchaseTracked) {
+        window.purchaseTracked = true;
+        fbq('track', 'Purchase', {
+          value: 1699.00,
+          currency: 'PKR',
+          content_name: '2 in 1 Eyebrow & Facial Hair Remover',
+          content_type: 'product',
+          content_ids: ['2in1-eyebrow-facial-hair-remover'],
+          num_items: 1
+        });
+      }
 
     }
   },1000);
