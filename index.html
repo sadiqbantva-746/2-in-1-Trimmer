@@ -127,11 +127,24 @@ body{background:#fff;color:#24171c}
 <script>
 const reviews=[["Very handy for quick eyebrow touch-ups and easy to keep in my beauty kit.","Ayesha K."],["I like the compact design and the two different trimming options.","Sana M."],["The rechargeable feature is convenient and the device is simple to handle.","Hira R."],["Useful for quick grooming before going out and easy to carry.","Maham S."],["The small size makes it convenient for travel and everyday touch-ups.","Fatima A."],["Simple to use and the rose-gold finish looks really nice.","Zainab R."]];
 track.innerHTML=reviews.concat(reviews).map(x=>'<span class="item"><span class="stars">★★★★★</span><span class="pink">CUSTOMER REVIEW:</span> '+x[0]+' <span class="author">— '+x[1]+'</span></span>').join('');
-document.querySelectorAll('a[href="#order"]').forEach(a=>a.onclick=e=>{e.preventDefault();order.classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>name.focus(),200)});
+document.querySelectorAll('a[href="#order"]').forEach(a=>a.onclick=e=>{e.preventDefault();order.classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>nameInput.focus(),200)});
 const orderModal=document.getElementById('order');
 const closeOrderBtn=document.getElementById('close');
 const orderForm=document.getElementById('form');
 const phoneInput=document.getElementById('phone');
+const nameInput=document.getElementById('name');
+const cityInput=document.getElementById('city');
+const addressInput=document.getElementById('address');
+const nearInput=document.getElementById('near');
+const processing=document.getElementById('processing');
+const thanks=document.getElementById('thanks');
+const count=document.getElementById('count');
+const orderNo=document.getElementById('orderNo');
+const tn=document.getElementById('tn');
+const tp=document.getElementById('tp');
+const tc=document.getElementById('tc');
+const ta=document.getElementById('ta');
+const tl=document.getElementById('tl');
 const backBtn=document.getElementById('back');
 
 function closeOrderForm(){
@@ -151,21 +164,27 @@ orderModal.addEventListener('click', function(e){
 });
 
 phoneInput.addEventListener('input', function(){
-  this.value = this.value.replace(/\\D/g, '');
+  this.value = this.value.replace(/\D/g, '');
   this.setCustomValidity('');
 });
 
 const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw0Li_1cfA95pLgycH5Pk0oXkvQflU18l8IpeMUEWmbygkIUdnMmRiKoVIZmDpc7RaJ/exec';
 
-orderForm.onsubmit=async e=>{
+orderForm.onsubmit=e=>{
   e.preventDefault();
+  e.stopPropagation();
   phoneInput.setCustomValidity('');
 
-  const customerName = name.value.trim();
-  const customerPhone = phone.value.trim();
-  const customerCity = city.value.trim();
-  const customerAddress = address.value.trim();
-  const customerNear = near.value.trim();
+  if (!orderForm.checkValidity()) {
+    orderForm.reportValidity();
+    return;
+  }
+
+  const customerName = nameInput.value.trim();
+  const customerPhone = phoneInput.value.trim();
+  const customerCity = cityInput.value.trim();
+  const customerAddress = addressInput.value.trim();
+  const customerNear = nearInput.value.trim();
   const orderNumber = 'BR' + Math.floor(100000+Math.random()*900000);
 
   tn.textContent=customerName;
@@ -195,16 +214,27 @@ orderForm.onsubmit=async e=>{
     source: 'Website'
   };
 
-  try {
-    await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(orderData),
-      keepalive: true
+  // Send to Google Sheets without blocking the order confirmation screen.
+  // Google Apps Script may redirect and can leave a no-cors fetch pending in the browser.
+  fetch(GOOGLE_SHEET_WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify(orderData),
+    keepalive: true
+  }).catch(error => console.error('Google Sheet submission failed:', error));
+
+  // Meta Pixel Purchase: fire immediately when the customer confirms the order.
+  if (typeof fbq === 'function' && !window.purchaseTracked) {
+    window.purchaseTracked = true;
+    fbq('track', 'Purchase', {
+      value: 1699.00,
+      currency: 'PKR',
+      content_name: '2 in 1 Eyebrow & Facial Hair Remover',
+      content_type: 'product',
+      content_ids: ['2in1-eyebrow-facial-hair-remover'],
+      num_items: 1
     });
-  } catch (error) {
-    console.error('Google Sheet submission failed:', error);
   }
 
   let n=3;
@@ -217,16 +247,7 @@ orderForm.onsubmit=async e=>{
       processing.classList.remove('show');
       thanks.classList.add('show');
 
-      // Meta Pixel: track a completed Cash on Delivery purchase once
-      if (typeof fbq === 'function' && !window.purchaseTracked) {
-        window.purchaseTracked = true;
-        fbq('track', 'Purchase', {
-          value: 1699.00,
-          currency: 'PKR',
-          content_name: '2 in 1 Eyebrow & Facial Hair Remover',
-          content_type: 'product'
-        });
-      }
+
     }
   },1000);
 };
